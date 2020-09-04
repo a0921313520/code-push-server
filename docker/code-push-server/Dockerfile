@@ -1,10 +1,6 @@
-FROM node:8.11.4-alpine
+FROM node:12.18.3-alpine
 
-# To handle 'not get uid/gid'
-RUN npm config set unsafe-perm true
-
-RUN npm config set registry https://registry.npm.taobao.org/ \
-&& npm i -g code-push-server@5.7.1 pm2@latest --no-optional
+RUN npm i -g code-push-server@5.7.1 pm2@latest --no-optional
 
 COPY ./security.js /usr/local/lib/node_modules/code-push-server/core/utils/security.js
 COPY ./package-manager.js /usr/local/lib/node_modules/code-push-server/core/services/package-manager.js
