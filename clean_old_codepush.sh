@@ -15,15 +15,19 @@ echo "------------------------------------------------------------"
 # 收集符合条件的目录
 TO_DELETE=()
 
-for subdir in "$ROOT_PATH"/*; do
-  [ -d "$subdir" ] || continue
-  while IFS= read -r item; do
-    [ -d "$item" ] || continue
-    MOD_TIME=$(date -r "$item" "+%Y-%m-%d %H:%M:%S")
-    SIZE=$(du -sh "$item" 2>/dev/null | cut -f1)
-    printf "%-20s  %-8s  %s\n" "$MOD_TIME" "$SIZE" "$item"
-    TO_DELETE+=("$item")
-  done < <(find "$subdir" -mindepth 1 -maxdepth 1 -type d ! -newer "$CUTOFF_FILE")
+# 遍历所有一级 app 文件夹（如 fg、fi、...）
+for appdir in "$ROOT_PATH"/*; do
+  [ -d "$appdir" ] || continue
+
+  # 遍历每个 app 目录下的一级子目录（更新版本目录）
+  while IFS= read -r version_dir; do
+    [ -d "$version_dir" ] || continue
+    MOD_TIME=$(date -r "$version_dir" "+%Y-%m-%d %H:%M:%S")
+    SIZE=$(du -sh "$version_dir" 2>/dev/null | cut -f1)
+    printf "%-20s  %-8s  %s\n" "$MOD_TIME" "$SIZE" "$version_dir"
+    TO_DELETE+=("$version_dir")
+  done < <(find "$appdir" -mindepth 1 -maxdepth 1 -type d ! -newer "$CUTOFF_FILE")
+
 done
 
 echo "------------------------------------------------------------"
@@ -38,5 +42,5 @@ else
   echo "❌ 已取消删除"
 fi
 
-# 删除参考文件
+# 清除临时基准时间文件
 rm -f "$CUTOFF_FILE"
